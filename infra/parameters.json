@@ -1,0 +1,342 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersion": {
+            "value": {
+                "type": "String",
+                "value": "2024-09-01-preview"
+            }
+        },
+        "name": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "arcNodeResourceIds": {
+            "value": {
+                "type": "Array",
+                "value": [
+                    "/subscriptions/",
+                    "/subscriptions/",
+                    "/subscriptions/"
+                ]
+            }
+        },
+        "domainFqdn": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "namingPrefix": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "adouPath": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "secretsLocation": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "securityLevel": {
+            "value": {
+                "type": "String",
+                "value": "Customized"
+            }
+        },
+        "driftControlEnforced": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "credentialGuardEnforced": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "smbSigningEnforced": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "smbClusterEncryption": {
+            "value": {
+                "type": "Bool",
+                "value": false
+            }
+        },
+        "bitlockerBootVolume": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "bitlockerDataVolumes": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "wdacEnforced": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "streamingDataClient": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "euLocation": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "episodicDataUpload": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "clusterName": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "witnessType": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "cloudAccountName": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "storageAccountEndpoint": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "configurationMode": {
+            "value": {
+                "type": "String",
+                "value": "Express"
+            }
+        },
+        "subnetMask": {
+            "value": {
+                "type": "String",
+                "value": "255.255.255.0"
+            }
+        },
+        "defaultGateway": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "startingIPAddress": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "endingIPAddress": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "dnsServers": {
+            "value": {
+                "type": "Array",
+                "value": [
+                    "",
+                    ""
+                ]
+            }
+        },
+        "useDhcp": {
+            "value": {
+                "type": "Bool",
+                "value": false
+            }
+        },
+        "physicalNodesSettings": {
+            "value": {
+                "type": "Array",
+                "value": [
+                    {
+                        "name": "",
+                        "ipv4Address": ""
+                    },
+                    {
+                        "name": "",
+                        "ipv4Address": "1"
+                    },
+                    {
+                        "name": "",
+                        "ipv4Address": ""
+                    }
+                ]
+            }
+        },
+        "networkingType": {
+            "value": {
+                "type": "String",
+                "value": "switchlessMultiServerDeployment"
+            }
+        },
+        "networkingPattern": {
+            "value": {
+                "type": "String",
+                "value": "hyperConverged"
+            }
+        },
+        "intentList": {
+            "value": {
+                "type": "Array",
+                "value": [
+                    {
+                        "name": "Compute_Management_Storage",
+                        "trafficType": [
+                            "Compute",
+                            "Management",
+                            "Storage"
+                        ],
+                        "adapter": [
+                            "Port0"
+                        ],
+                        "overrideVirtualSwitchConfiguration": false,
+                        "virtualSwitchConfigurationOverrides": {
+                            "enableIov": "",
+                            "loadBalancingAlgorithm": ""
+                        },
+                        "overrideQosPolicy": false,
+                        "qosPolicyOverrides": {
+                            "priorityValue8021Action_Cluster": "7",
+                            "priorityValue8021Action_SMB": "3",
+                            "bandwidthPercentage_SMB": "50"
+                        },
+                        "overrideAdapterProperty": false,
+                        "adapterPropertyOverrides": {
+                            "jumboPacket": "1514",
+                            "networkDirect": "Enabled",
+                            "networkDirectTechnology": "RoCEv2"
+                        }
+                    }
+                ]
+            }
+        },
+        "storageNetworkList": {
+            "value": {
+                "type": "Array",
+                "value": [
+                    {
+                        "name": "StorageNetwork1",
+                        "networkAdapterName": "Port0",
+                        "vlanId": "71"
+                    }
+                ]
+            }
+        },
+        "storageConnectivitySwitchless": {
+            "value": {
+                "type": "Bool",
+                "value": false
+            }
+        },
+        "enableStorageAutoIp": {
+            "value": {
+                "type": "Bool",
+                "value": true
+            }
+        },
+        "secrets": {
+            "value": {
+                "type": "Array",
+                "value": [
+                    {
+                        "secretName": "",
+                        "eceSecretName": "LocalAdminCredential",
+                        "secretLocation": ""
+                    },
+                    {
+                        "secretName": "",
+                        "eceSecretName": "",
+                        "secretLocation": ""
+                    }
+                ]
+            }
+        },
+        "customLocation": {
+            "value": {
+                "type": "String",
+                "value": ""
+            }
+        },
+        "isSbeManifestPresent": {
+            "value": {
+                "type": "Bool",
+                "value": false
+            }
+        },
+        "sbeDeploymentInfo": {
+            "value": {
+                "type": "Object",
+                "value": {
+                    "version": "",
+                    "family": "",
+                    "publisher": "",
+                    "sbeManifestSource": "",
+                    "sbeManifestCreationDate": null
+                }
+            }
+        },
+        "isPartnerPropertiesPresent": {
+            "value": {
+                "type": "Bool",
+                "value": false
+            }
+        },
+        "partnerPropertiesInDeploymentSettings": {
+            "value": {
+                "type": "Array",
+                "value": []
+            }
+        },
+        "isCredentialListPresent": {
+            "value": {
+                "type": "Bool",
+                "value": false
+            }
+        },
+        "credentialListInDeploymentSettings": {
+            "value": {
+                "type": "Array",
+                "value": []
+            }
+        }
+    }
+}
