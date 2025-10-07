@@ -1,0 +1,44 @@
+parameters:
+  - name: planName
+  - name: terraformDirectory
+  - name: infraCostApiKey
+
+steps:
+  - task: InfracostSetup@2
+    displayName: "Setup Infracost"
+    inputs:
+      apiKey: ${{ parameters.infraCostApiKey }}
+      version: "0.10.x"
+      currency: "GBP"
+      enableDashboard: false
+
+  - script: |
+      mkdir -p ./gnuhome
+      export GNUPGHOME="$(Pipeline.Workspace)/${{ parameters.planName }}-artifact/gnuhome"
+      gpg --yes --batch --passphrase=$(pipelineEncrypt) ${{ parameters.planName }}.tar.gpg 2>/dev/null
+    displayName: Artifact Decryption
+    workingDirectory: $(Pipeline.Workspace)/${{ parameters.planName }}-artifact
+
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: $(Pipeline.Workspace)/${{ parameters.planName }}-artifact/${{ parameters.planName }}.tar
+      destinationFolder: ./${{ parameters.terraformDirectory }}
+
+  - task: Bash@3
+    displayName: "Convert Plan"
+    inputs:
+      targetType: "inline"
+      workingDirectory: '${{ parameters.terraformDirectory }}'
+      script: |
+        terraform show -json ${{ parameters.planName }}.plan > plan.json
+
+  - task: Bash@3
+    displayName: "Run Infracost"
+    inputs:
+      targetType: "inline"
+      workingDirectory: ${{ parameters.terraformDirectory }}
+      script: |
+        infracost configure set api_key ${{ parameters.infraCostApiKey }}
+        infracost configure set currency GBP
+        infracost breakdown --path plan.json
+        infracost diff --path plan.json

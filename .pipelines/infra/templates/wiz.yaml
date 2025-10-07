@@ -1,0 +1,16 @@
+parameters:
+ - name: planName
+ - name: terraformDirectory
+
+steps:
+  - task: wiz@0
+    displayName: 'Wiz Compliance Scan'
+    inputs:
+      command: 'iac'
+      clientid: $(WIZ_CLIENT_ID)
+      secret: $(WIZ_CLIENT_SECRET)
+      succeedOnFailures: false
+      policyHitsOnly: false
+      scanTags: "cicd=ado,app=terraform"
+      path: '${{ parameters.terraformDirectory }}'
+      sudo: true

@@ -1,0 +1,114 @@
+parameters:
+  - name: backendKey
+  - name: backendResourceGroup
+  - name: terraformDirectory
+  - name: planName
+  - name: extraFile
+  - name: keyvaultName
+  - name: secretName
+  - name: azureSubscription
+
+
+steps:
+    - task: AzureCLI@2
+      name: ParseSecretStep
+      displayName: "Fetch JSON Secret and Set Output Variables"
+      inputs:
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          set -e
+
+          echo "Fetching secret from Key Vault: ${{ parameters.keyvaultName }}"
+
+          SECRET_JSON=$(az keyvault secret show \
+            --vault-name ${{ parameters.keyvaultName }} \
+            --name "${{ parameters.secretName }}" \
+            --query value -o tsv)
+
+          echo "Secret JSON: $SECRET_JSON"
+
+          # Parse JSON into variables
+          STORAGE_ACCOUNT_NAME=$(echo $SECRET_JSON | jq -r '.storage_account_name')
+          STORAGE_CONTAINER_NAME=$(echo $SECRET_JSON | jq -r '.storage_container_name')
+          ARM_CLIENT_SECRET=$(echo $SECRET_JSON | jq -r '.service_principal_secret')
+          ARM_SUBSCRIPTION_ID=$(echo $SECRET_JSON | jq -r '.subscription_id')
+          ARM_CLIENT_ID=$(echo $SECRET_JSON | jq -r '.service_principal_id')
+          KEYVAULT_NAME=$(echo $SECRET_JSON | jq -r '.key_vault_name')
+          SUBSCRIPTION_NAME=$(echo $SECRET_JSON | jq -r '.subscription_name')
+
+          echo "##vso[task.setvariable variable=STORAGE_ACCOUNT_NAME]$STORAGE_ACCOUNT_NAME"
+          echo "##vso[task.setvariable variable=STORAGE_CONTAINER_NAME]$STORAGE_CONTAINER_NAME"
+          echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$ARM_CLIENT_SECRET"
+          echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$ARM_SUBSCRIPTION_ID"
+          echo "##vso[task.setvariable variable=ARM_CLIENT_ID]$ARM_CLIENT_ID"
+          echo "##vso[task.setvariable variable=KEYVAULT_NAME]$KEYVAULT_NAME"
+          echo "##vso[task.setvariable variable=SUBSCRIPTION_NAME]$SUBSCRIPTION_NAME"
+
+    - task: AzureCLI@2
+      displayName: "Init and Plan Terraform"
+      inputs:
+        azureSubscription: ${{ parameters.azureSubscription }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          cd ${{ parameters.terraformDirectory }}
+
+          export TF_VAR_local_admin_password="$(local_admin_password)"
+          export TF_VAR_deployment_user_password="$(deployment_user_password)"
+
+          echo "Initializing Terraform backend..."
+          terraform init \
+            -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+            -backend-config="client_id=$ARM_CLIENT_ID" \
+            -backend-config="client_secret=$ARM_CLIENT_SECRET" \
+            -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME" \
+            -backend-config="container_name=$STORAGE_CONTAINER_NAME" \
+            -backend-config="resource_group_name=${{ parameters.backendResourceGroup }}" \
+            -backend-config="key=${{ parameters.backendKey }}.tfstate"
+
+          echo "Validating Terraform configuration..."
+          terraform validate -no-color
+
+          echo "Planning Terraform changes..."
+          terraform plan ${{ parameters.extraFile }} -out=${{ parameters.planName }}.plan -no-color -input=false -detailed-exitcode > /dev/null
+
+          # Handle exit codes
+          OUT=$?
+          if [ $OUT -eq 0 ];then
+            echo '##vso[task.setvariable variable=terraform_plan_exitcode;isOutput=true]0'
+            echo "No changes. Infrastructue is up-to-date!"
+          elif [ $OUT -eq 1 ];then
+            echo '##vso[task.setvariable variable=terraform_plan_exitcode;isOutput=true]1'
+            echo "Terraform plan has failed!"
+            exit 1
+          elif [ $OUT -eq 2 ];then
+            echo '##vso[task.setvariable variable=terraform_plan_exitcode;isOutput=true]2'
+            echo "Changes have been noticed!"
+            terraform show ./${{ parameters.planName }}.plan -no-color
+          else
+            echo "Terraform plan has failed!"
+            exit 1
+          fi
+
+          # Create artifact for publish
+          cd $(Build.SourcesDirectory)
+          mkdir -p ./ArtifactPublishLocation
+          
+          echo "Compressing ${{ parameters.terraformDirectory }} directory..."
+          tar -cf ${{ parameters.planName }}.tar -C ./${{ parameters.terraformDirectory }} .
+          echo "Encrypting Artifact"
+          mkdir -p ./gnuhome
+          export GNUPGHOME="${{ parameters.terraformDirectory }}/gnuhome"
+          gpg --yes --batch --passphrase=$(pipelineEncrypt) -c ${{ parameters.planName }}.tar 2>/dev/null
+          echo "Moving artifact to publish location"
+          mv -f ${{ parameters.planName }}.tar.gpg ./ArtifactPublishLocation/${{ parameters.planName }}.tar.gpg
+
+          # Remove modified gitconfig
+          rm -f ~/.gitconfig
+
+    - task: PublishPipelineArtifact@0
+      inputs:
+        artifactName: "${{ parameters.planName }}-artifact"
+        targetPath: "./ArtifactPublishLocation"
