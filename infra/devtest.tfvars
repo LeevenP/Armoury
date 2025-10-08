@@ -26,7 +26,7 @@ tags = {
   customer         = "cross-customer"
   environment-type = "devtest"
   market           = "no-market-impact"
-  owner            = "lee@oak.group"
-  support-owner    = "technology@oak.group"
+  owner            = "lee@test.group"
+  support-owner    = "technology@test.group"
   software-product = "infrastructure"
 }
